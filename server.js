@@ -17,7 +17,7 @@ connectDB();
 
 const app = express();
 
-app.set("secretKey", "1863")
+app.set("secretKey", "1863");
 
 /*
 app.use(cors({
@@ -33,9 +33,16 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 app.use(cors());
 app.use(express.json());
 app.use('/record', recordRoutes);
-//app.use('/record', verifyToken, recordRoutes);
-
+// app.use('/record', verifyToken, recordRoutes);
 app.use('/user', userRoutes);
+
+// Ruta para el estado del servidor
+app.get('/status', (req, res) => {
+  res.json({ 
+    status: 'success', 
+    message: 'El servidor está funcionando correctamente.' 
+  });
+});
 
 // Middleware de manejo de errores
 app.use(errorMiddleware);
@@ -43,17 +50,19 @@ app.use(errorMiddleware);
 function verifyToken(req, res, next) {
   jwt.verify(req.headers["x-access-token"], req.app.get("secretKey"), function (err, payload) {
     if (err) {
-      res.json({ message: err.message })
+      res.json({ message: err.message });
     } else {
-      console.log("Payload", payload)
-      req.body.userId = payload.userId
-      next()
+      console.log("Payload", payload);
+      req.body.userId = payload.userId;
+      next();
     }
-  })
+  });
 }
 
-app.verifyToken = verifyToken
+app.verifyToken = verifyToken;
 
+// Iniciar el servidor y enviar mensaje al frontend
 app.listen(PORT, () => {
   console.log(`Server listening on port ${PORT}`);
+  console.log('Servidor iniciado correctamente.');
 });
