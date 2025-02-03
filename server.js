@@ -2,8 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import connectDB from './services/dbService.js';
 
-import recordRoutes from './routes/playerRoutes.js';
-import userRoutes from './routes/userRoutes.js';
+import playerRoutes from './routes/playerRoutes.js';
+// import userRoutes from './routes/userRoutes.js';
 
 import errorMiddleware from './middleware/errorMiddleware.js';
 import swaggerUi from 'swagger-ui-express';
@@ -28,13 +28,13 @@ app.use(cors({
 */
 
 // Rutas de Swagger
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+// app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 app.use(cors());
 app.use(express.json());
-app.use('/record', recordRoutes);
+app.use('/player', playerRoutes);
 // app.use('/record', verifyToken, recordRoutes);
-app.use('/user', userRoutes);
+// app.use('/user', userRoutes);
 
 // Ruta para el estado del servidor
 app.get('/status', (req, res) => {

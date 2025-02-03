@@ -1,4 +1,4 @@
-import Record from '../models/playerModel.js';
+import Player from '../models/playerModel.js';
 
 
 
@@ -6,7 +6,7 @@ import Record from '../models/playerModel.js';
 const validarSuplentes = async (jugadores) => {
   // Filtra los jugadores con estado "Suplente" de los que intentas insertar
   const suplentesNuevos = jugadores.filter(jugador => jugador.perfilFutbolistico.estado === "Suplente");
-  const suplentesExistentes = await Record.countDocuments({ "perfilFutbolistico.estado": "Suplente" });
+  const suplentesExistentes = await Player.countDocuments({ "perfilFutbolistico.estado": "Suplente" });
   const totalSuplentes = suplentesExistentes + suplentesNuevos.length;
 
   console.log(`Número total de suplentes: ${totalSuplentes}`); // Muestra el número total de suplentes
@@ -19,7 +19,7 @@ const validarSuplentes = async (jugadores) => {
 const validarTitulares = async (jugadores) => {
   // Filtra los jugadores con estado "Titular" de los que intentas insertar
   const titularesNuevos = jugadores.filter(jugador => jugador.perfilFutbolistico.estado === "Titular");
-  const titularesExistentes = await Record.countDocuments({ "perfilFutbolistico.estado": "Titular" });
+  const titularesExistentes = await Player.countDocuments({ "perfilFutbolistico.estado": "Titular" });
   const totalTitulares = titularesExistentes + titularesNuevos.length;
 
   console.log(`Número total de titulares: ${totalTitulares}`); // Muestra el número total de titulares
@@ -29,7 +29,7 @@ const validarTitulares = async (jugadores) => {
 };
 
 // Crear múltiples jugadores
-const createRecord = async (req, res) => {
+const createPlayer = async (req, res) => {
   try {
     // Primero, validamos el número de suplentes o titulares antes de guardar los jugadores
     const jugadores = req.body; // Asumiendo que el cuerpo de la solicitud contiene un array de jugadores
@@ -38,7 +38,7 @@ const createRecord = async (req, res) => {
     await validarTitulares(jugadores);
 
     // Luego, insertamos los jugadores
-    const newPlayers = await Record.insertMany(jugadores);
+    const newPlayers = await Player.insertMany(jugadores);
 
     res.status(201).json(newPlayers);
   } catch (err) {
@@ -55,50 +55,61 @@ const createRecord = async (req, res) => {
 
 
 
-const getAllRecords = async (req, res) => {
+const getAllPlayers = async (req, res) => {
   try {
-    const records = await Record.find();
-    res.status(200).json(records);
+    const players = await Player.find();
+    res.status(200).json(players);
   } catch (err) {
     res.status(500).json({ message: 'Internal server error', error: err.message });
   }
 };
 
-const getRecordById = async (req, res) => {
+const getPlayerById = async (req, res) => {
   try {
-    const record = await Record.findById(req.params.id);
-    if (!record) {
-      return res.status(404).json({ message: 'Record not found' });
+    const player = await Player.findById(req.params.id);
+    if (!player) {
+      return res.status(404).json({ message: 'Player not found' });
     }
-    res.status(200).json(record);
+    res.status(200).json(player);
   } catch (err) {
     res.status(500).json({ message: 'Internal server error', error: err.message });
   }
 };
 
-const updateRecord = async (req, res) => {
+const updatePlayer = async (req, res) => {
   try {
-    const record = await Record.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
-    if (!record) {
-      return res.status(404).json({ message: 'Record not found' });
+    if (Object.keys(req.body).length === 0) {
+      return res.status(400).json({ message: 'No se proporcionaron campos para actualizar' });
     }
-    res.status(200).json(record);
+
+    const player = await Player.findByIdAndUpdate(
+      req.params.id, 
+      req.body, 
+      { new: true, runValidators: true, omitUndefined: true } 
+    );
+
+    if (!player) {
+      return res.status(404).json({ message: 'Jugador no encontrado' });
+    }
+
+    res.status(200).json(player);
   } catch (err) {
     if (err.name === 'ValidationError') {
-      res.status(400).json({ message: 'Validation error', errors: err.errors });
+      res.status(400).json({ message: 'Error de validación', errors: err.errors });
     } else {
-      res.status(500).json({ message: 'Internal server error', error: err.message });
+      res.status(500).json({ message: 'Error interno del servidor', error: err.message });
     }
   }
 };
 
-const deleteRecord = async (req, res) => {
+
+const deletePlayer = async (req, res) => {
   try {
-    const result = await Record.findByIdAndDelete(req.params.id);
+    const result = await Player.findByIdAndDelete(req.params.id);
     if (!result) {
-      return res.status(404).json({ message: 'Record not found' });
+      return res.status(404).json({ message: 'Player not found' });
     }
-    res.status(200).json({ message: 'Record deleted successfully' });
+    res.status(200).json({ message: 'Player deleted successfully' });
   } catch (err) {
     res.status(500).json({ message: 'Internal server error', error: err.message });
   }
@@ -113,17 +124,17 @@ const updatePlayerStatus = async (req, res) => {
       return res.status(400).json({ message: 'El estado es obligatorio' });
     }
 
-    const record = await Record.findByIdAndUpdate(
+    const player = await Player.findByIdAndUpdate(
       req.params.id,
       { 'perfilFutbolistico.estado': estado },
       { new: true, runValidators: true }
     );
 
-    if (!record) {
+    if (!player) {
       return res.status(404).json({ message: 'Jugador no encontrado' });
     }
 
-    res.status(200).json(record);
+    res.status(200).json(player);
   } catch (err) {
     if (err.name === 'ValidationError') {
       res.status(400).json({ message: 'Validation error', errors: err.errors });
@@ -133,4 +144,4 @@ const updatePlayerStatus = async (req, res) => {
   }
 };
 
-export { createRecord, getAllRecords, getRecordById, updateRecord, deleteRecord, updatePlayerStatus };
+export { createPlayer, getAllPlayers, getPlayerById, updatePlayer, deletePlayer, updatePlayerStatus };
