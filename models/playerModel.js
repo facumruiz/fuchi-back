@@ -79,7 +79,7 @@ const jugadorSchema = new Schema({
     estado: {
       type: String,
       enum: ['Titular', 'Suplente', 'Lesionado', 'Preseleccionado', 'Desafectado', 'Suspendido'],
-      default: 'Titular',
+      default: 'Preseleccionado',
       required: [true, 'El estado del jugador es obligatorio']
     },
   },

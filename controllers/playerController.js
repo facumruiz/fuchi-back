@@ -2,55 +2,74 @@ import Player from '../models/playerModel.js';
 
 
 
+// Límite de suplentes y titulares
+const LIMITE_SUPLENTES = 25;
+const LIMITE_TITULARES = 11;
+const LIMITE_PRESELECCIONADOS = 15; // El límite para los preseleccionados
+
 // Validación para controlar el número máximo de suplentes
 const validarSuplentes = async (jugadores) => {
-  // Filtra los jugadores con estado "Suplente" de los que intentas insertar
   const suplentesNuevos = jugadores.filter(jugador => jugador.perfilFutbolistico.estado === "Suplente");
   const suplentesExistentes = await Player.countDocuments({ "perfilFutbolistico.estado": "Suplente" });
   const totalSuplentes = suplentesExistentes + suplentesNuevos.length;
 
-  console.log(`Número total de suplentes: ${totalSuplentes}`); // Muestra el número total de suplentes
-  if (totalSuplentes > 11) {
-    throw new Error('No se pueden agregar más de 11 suplentes.');
+  console.log(`Número total de suplentes: ${totalSuplentes}`);
+  if (totalSuplentes > LIMITE_SUPLENTES) {
+    throw new Error(`No se pueden agregar más de ${LIMITE_SUPLENTES} suplentes.`);
   }
 };
 
 // Validación para controlar el número máximo de titulares
 const validarTitulares = async (jugadores) => {
-  // Filtra los jugadores con estado "Titular" de los que intentas insertar
   const titularesNuevos = jugadores.filter(jugador => jugador.perfilFutbolistico.estado === "Titular");
   const titularesExistentes = await Player.countDocuments({ "perfilFutbolistico.estado": "Titular" });
   const totalTitulares = titularesExistentes + titularesNuevos.length;
 
-  console.log(`Número total de titulares: ${totalTitulares}`); // Muestra el número total de titulares
-  if (totalTitulares > 11) {
-    throw new Error('No se pueden agregar más de 11 titulares.');
+  console.log(`Número total de titulares: ${totalTitulares}`);
+  if (totalTitulares > LIMITE_TITULARES) {
+    throw new Error(`No se pueden agregar más de ${LIMITE_TITULARES} titulares.`);
+  }
+};
+
+// Validación para controlar el número máximo de preseleccionados
+const validarPreseleccionados = async (jugadores) => {
+  const preseleccionadosNuevos = jugadores.filter(jugador => jugador.perfilFutbolistico.estado === "Preseleccionado");
+  const preseleccionadosExistentes = await Player.countDocuments({ "perfilFutbolistico.estado": "Preseleccionado" });
+  const totalPreseleccionados = preseleccionadosExistentes + preseleccionadosNuevos.length;
+
+  console.log(`Número total de preseleccionados: ${totalPreseleccionados}`);
+  if (totalPreseleccionados > LIMITE_PRESELECCIONADOS) {
+    throw new Error(`No se pueden agregar más de ${LIMITE_PRESELECCIONADOS} preseleccionados.`);
   }
 };
 
 // Crear múltiples jugadores
 const createPlayer = async (req, res) => {
   try {
-    // Primero, validamos el número de suplentes o titulares antes de guardar los jugadores
-    const jugadores = req.body; // Asumiendo que el cuerpo de la solicitud contiene un array de jugadores
+    const jugadores = req.body; // Los jugadores enviados en la solicitud
 
+    // Primero, validamos los suplentes, titulares y preseleccionados
     await validarSuplentes(jugadores);
     await validarTitulares(jugadores);
+    await validarPreseleccionados(jugadores);
 
-    // Luego, insertamos los jugadores
+    // Insertamos los jugadores
     const newPlayers = await Player.insertMany(jugadores);
 
     res.status(201).json(newPlayers);
   } catch (err) {
-    if (err.message === 'No se pueden agregar más de 11 suplentes.' || err.message === 'No se pueden agregar más de 11 titulares.') {
+    if (err.message.includes('No se pueden agregar más de')) {
       res.status(400).json({ message: err.message });
     } else if (err.name === 'ValidationError') {
-      res.status(400).json({ message: 'Validation error', errors: err.errors });
+      res.status(400).json({ message: 'Error de validación', errors: err.errors });
     } else {
-      res.status(500).json({ message: 'Internal server error', error: err.message });
+      res.status(500).json({ message: 'Error interno del servidor', error: err.message });
     }
   }
 };
+
+
+
 
 
 
