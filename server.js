@@ -6,8 +6,8 @@ import playerRoutes from './routes/playerRoutes.js';
 // import userRoutes from './routes/userRoutes.js';
 
 import errorMiddleware from './middleware/errorMiddleware.js';
-import swaggerUi from 'swagger-ui-express';
-import swaggerDocs from './config/swaggerConfig.js';
+//import swaggerUi from 'swagger-ui-express';
+//import swaggerDocs from './config/swaggerConfig.js';
 import { PORT, FRONT_URL } from './config/env.js';
 
 import jwt from 'jsonwebtoken';
@@ -19,18 +19,18 @@ const app = express();
 
 app.set("secretKey", "1863");
 
-/*
+
 app.use(cors({
   origin: FRONT_URL, // Cambia esto por la URL de tu frontend desde la variable de entorno
   methods: ['GET', 'POST', 'PATCH', 'DELETE'], // Métodos permitidos
   allowedHeaders: ['Content-Type', 'x-access-token'], // Headers permitidos
 }));
-*/
+
 
 // Rutas de Swagger
 // app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
-app.use(cors());
+// app.use(cors());
 app.use(express.json());
 app.use('/player', playerRoutes);
 // app.use('/record', verifyToken, recordRoutes);
