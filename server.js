@@ -20,11 +20,24 @@ const app = express();
 app.set("secretKey", "1863");
 
 
+const allowedOrigins = [
+  'http://localhost:3000',
+  'https://fuchi-manager.onrender.com'
+];
+
 app.use(cors({
-  origin: FRONT_URL, // Cambia esto por la URL de tu frontend desde la variable de entorno
-  methods: ['GET', 'POST', 'PATCH', 'DELETE'], // Métodos permitidos
-  allowedHeaders: ['Content-Type', 'x-access-token'], // Headers permitidos
+  origin: function(origin, callback) {
+    // Permitir solicitudes sin origen (por ejemplo, Postman) o si el origen está en la lista
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('No permitido por CORS'));
+    }
+  },
+  methods: ['GET', 'POST', 'PATCH', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'x-access-token'],
 }));
+
 
 
 // Rutas de Swagger
